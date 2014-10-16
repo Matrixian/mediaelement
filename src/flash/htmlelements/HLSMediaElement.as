@@ -4,8 +4,9 @@
   import flash.media.Video;
   import flash.media.SoundTransform;
   import org.mangui.hls.HLS;
-  import org.mangui.hls.HLSEvent;
-  import org.mangui.hls.HLSPlayStates;
+  import org.mangui.hls.HLSSettings;
+  import org.mangui.hls.event.HLSEvent;
+  import org.mangui.hls.constant.HLSPlayStates;
   import org.mangui.hls.utils.Log;
 
 public class HLSMediaElement extends Sprite implements IMediaElement {
@@ -22,6 +23,9 @@ public class HLSMediaElement extends Sprite implements IMediaElement {
   // event values
   private var _position:Number = 0;
   private var _duration:Number = 0;
+  // flashhls currentTime is only the relative currentTime based on sliding window. The absolute current time represents
+  // the time since the hls video started playing.
+  private var _absoluteCurrentTime:Number = 0;
   private var _framerate:Number;
   private var _isManifestLoaded:Boolean = false;
   private var _isPaused:Boolean = true;
@@ -73,6 +77,7 @@ public class HLSMediaElement extends Sprite implements IMediaElement {
       _videoWidth = event.levels[0].width;
       _videoHeight = event.levels[0].height;
       _isManifestLoaded = true;
+      _hls.stage = _video.stage;
       sendEvent(HtmlMediaEvent.LOADEDMETADATA);
       sendEvent(HtmlMediaEvent.CANPLAY);
       if(_autoplay || _playqueued) {
@@ -84,6 +89,9 @@ public class HLSMediaElement extends Sprite implements IMediaElement {
     private function _mediaTimeHandler(event:HLSEvent):void {
       _position = event.mediatime.position;
       _duration = event.mediatime.duration;
+      // Depeding on the flashls version, the absoluteCurrentTime is passed through.
+      var playback_absolute_position = event.mediatime.playback_absolute_position;
+      if(playback_absolute_position !== undefined)_absoluteCurrentTime = playback_absolute_position;
       _bufferedTime = event.mediatime.buffer+event.mediatime.position;
       sendEvent(HtmlMediaEvent.PROGRESS);
       sendEvent(HtmlMediaEvent.TIMEUPDATE);
@@ -232,6 +240,7 @@ public class HLSMediaElement extends Sprite implements IMediaElement {
       "duration:" + _duration +
         ",framerate:" + _hls.stream.currentFPS +
         ",currentTime:" + _position +
+        ",absoluteCurrentTime:" + _absoluteCurrentTime +
         ",muted:" + _isMuted +
         ",paused:" + _isPaused +
         ",ended:" + _isEnded +
