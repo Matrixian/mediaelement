@@ -65,6 +65,8 @@
 		iPhoneUseNativeControls: false,
 		// force Android's native controls
 		AndroidUseNativeControls: false,
+        //allow plugin media element to receive full height thus enabling vertical centering.
+        useParentHeight: false,
 		// features to show
 		features: ['playpause','current','progress','duration','tracks','volume','fullscreen'],
 		// only for dynamic
@@ -841,6 +843,10 @@
 					// if shim is ready, send the size to the embeded plugin
 					if (t.isVideo) {
 						if (t.media.setVideoSize) {
+                            //allow flash to receive full height thus enabling vertical centering.
+                            if(t.options.useParentHeight){
+                                newHeight = parentHeight;
+                            }
 							t.media.setVideoSize(parentWidth, newHeight);
 						}
 					}
